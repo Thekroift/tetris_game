@@ -325,7 +325,6 @@ class _GameBoardPageState extends State<GameBoardPage> {
       //GAME CONTROLS
        floatingActionButton: floatingBotton(onpress: pause == false ? () => rotatePieces() : (){}),
       floatingActionButtonLocation: FloatingActionButtonLocation.miniCenterFloat
-      //FloatingActionButtonLocation.centerFloat,
    );
   }
 }
