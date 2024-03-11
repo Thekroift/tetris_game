@@ -37,7 +37,7 @@ class _GameBoardPageState extends State<GameBoardPage> {
   //Fats
   bool isFast = true;
   //pause
-  bool pause = false;
+  bool ispause = false;
 
   @override
   void initState() {
@@ -72,7 +72,7 @@ class _GameBoardPageState extends State<GameBoardPage> {
           resetGame();
           Navigator.pop(context);
         });
-        }else if (pause == true){
+        }else if (ispause == true){
           timer.cancel();
         }
         //move current piece dow
@@ -106,7 +106,7 @@ class _GameBoardPageState extends State<GameBoardPage> {
      var row = (currentPiece.position[i] / rowL).floor();
      var column = currentPiece.position[i] % rowL;
      //adjust the row and column based on the direction     
-     if (direction == Direction.left) {
+     if (direction == Direction.left) { 
       column -= 1;
       }else if(direction == Direction.right){
       column += 1;
@@ -150,6 +150,27 @@ class _GameBoardPageState extends State<GameBoardPage> {
     return false; // no collision with landed pieces
   }
 
+  bool checksides(){
+        // loop through each position of the current piece
+    for (int i = 0; i < currentPiece.position.length; i++) {
+      int row = (currentPiece.position[i] / rowL).floor();
+      int col = currentPiece.position[i] % rowL;
+
+      if (row  < columL  && row >= 0 && gameBoard[row][col] != null) {
+        for (int i = 0; i < currentPiece.position.length; i++) {
+        int row = (currentPiece.position[i] / rowL).floor();
+        int col = currentPiece.position[i] % rowL;
+        row >= 0 && col >= 0 ? gameBoard[row][col] = currentPiece.type : null;
+        }
+        return true;
+      }
+    }
+
+    return false; // no collision with landed pieces
+
+  }
+
+
   void createNewPiece(){
     //create a random object to generate random tetromino types
     Random rand = Random();
@@ -167,7 +188,11 @@ class _GameBoardPageState extends State<GameBoardPage> {
  //move left
  void moveLeft(){
   //make sure the move is validbefore moving there
-  !checkCollision(Direction.left) ? setState(() {currentPiece.movePiece(Direction.left);}) : null;
+  if (checkCollision(Direction.left) == false) {
+    if (checksides() == false) {
+      setState(() {currentPiece.movePiece(Direction.left);});   
+    }
+  }
  }
  
  //move right
@@ -196,7 +221,7 @@ class _GameBoardPageState extends State<GameBoardPage> {
           resetGame();
           Navigator.pop(context);
         });
-        }else if (pause == true){
+        }else if (ispause == true){
           timer.cancel();
         }else if(isFast == false){
           timer.cancel();
@@ -265,16 +290,16 @@ class _GameBoardPageState extends State<GameBoardPage> {
           IconButton(
           splashRadius: 1,
           onPressed: (){
-            if (pause == false) {
-              pause = true;
-            }else if(pause == true){
-              pause = false;
+            if (ispause == false) {
+              ispause = true;
+            }else if(ispause == true){
+              ispause = false;
               Duration frameRate = const Duration(milliseconds: 800); 
               //frame refresh rate
               gameLoop(frameRate);
             }
           },
-          icon:  Icon(pause == false ? Icons.pause : Icons.play_arrow, color: Colors.white)),
+          icon:  Icon(ispause == false ? Icons.pause : Icons.play_arrow, color: Colors.white)),
         ],
         ),
       backgroundColor: const Color.fromARGB(135, 130, 130, 130),
@@ -296,7 +321,7 @@ class _GameBoardPageState extends State<GameBoardPage> {
                       int column = index % rowL;
                       //current piece
                       if (currentPiece.position.contains(index)) {
-                        return PixelPage(color: Colors.yellow[400]);
+                        return PixelPage(color: Colors.yellow[400] );
                       //landed pieces
                         }else if(gameBoard[row][column] != null){
                           final Tetromino? tetraminoType = gameBoard[row][column];
@@ -317,13 +342,13 @@ class _GameBoardPageState extends State<GameBoardPage> {
               mainAxisAlignment: MainAxisAlignment.spaceAround,
                children: [
                 //left 0
-                myBotton(context, pause == false ? () => moveLeft() : (){}, 10, 40, 0),
+                myBotton(context, ispause == false ? () => moveLeft() : (){}, 10, 40, 0),
                 //right 1
-                myBotton(context, pause == false ? () => moveRight() : (){}, 40, 10, 1)
+                myBotton(context, ispause == false ? () => moveRight() : (){}, 40, 10, 1)
                 ]))],
         ),
       //GAME CONTROLS
-       floatingActionButton: floatingBotton(onpress: pause == false ? () => rotatePieces() : (){}),
+       floatingActionButton: floatingBotton(onpress: ispause == false ? () => rotatePieces() : (){}),
       floatingActionButtonLocation: FloatingActionButtonLocation.miniCenterFloat
    );
   }
