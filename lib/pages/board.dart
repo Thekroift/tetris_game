@@ -32,7 +32,7 @@ class _GameBoardPageState extends State<GameBoardPage> {
   Piece currentPiece = Piece(type: Tetromino.L);
   //current score
   int currentScore = 0;
-  //game over
+  //game over5
   bool gameover = false;
   //Fats
   bool isFast = true;
@@ -96,31 +96,6 @@ class _GameBoardPageState extends State<GameBoardPage> {
   startGame();
   }
 
-  //check for collision in a future position
-  //return true -> there is a collision 
-  //return false -> there is not collision
-  bool checkCollision(Direction direction){
-    //loop through each position of the current piece
-    for (var i = 0; i < currentPiece.position.length; ++i) {
-    //calcule the row and the column of the current position 
-     var row = (currentPiece.position[i] / rowL).floor();
-     var column = currentPiece.position[i] % rowL;
-     //adjust the row and column based on the direction     
-     if (direction == Direction.left) { 
-      column -= 1;
-      }else if(direction == Direction.right){
-      column += 1;
-      }else if(direction == Direction.dow){
-      row += 1;
-      }
-      //check if the piece is out of bounds (either too low or too far to the left or right) 
-      if (row >= columL || column < 0 || column >= rowL) {
-        return true;
-        }
-    }
-    //if no collisions are detected, return false
-    return false;
-  }
 
  void checkLanding() {
     // if going down is occupied or landed on other pieces
@@ -137,6 +112,33 @@ class _GameBoardPageState extends State<GameBoardPage> {
     }
   }
 
+  
+  //check for collision in a future position
+  //return true -> there is a collision 
+  //return false -> there is not collision
+  bool checkCollision(Direction direction){
+    //loop through each position of the current piece
+    for (var i = 0; i < currentPiece.position.length; ++i) {
+    //calcule the row and the column of the current position 
+     var row = (currentPiece.position[i] / rowL).floor();
+     var column = currentPiece.position[i] % rowL;
+     //adjust the row and column based on the direction     
+     if (direction == Direction.left) {
+      column -= 1;
+      }else if(direction == Direction.right){
+      column += 1;
+      }else if(direction == Direction.dow){
+      row += 1;
+      }
+      //check if the piece is out of bounds (either too low or too far to the left or right) 
+      if (row >= columL || column < 0 || column >= rowL) {
+        return true;
+        }
+    }
+    //if no collisions are detected, return false
+    return false;
+  }
+
   bool checkLanded() {
     // loop through each position of the current piece
     for (int i = 0; i < currentPiece.position.length; i++) {
@@ -150,24 +152,22 @@ class _GameBoardPageState extends State<GameBoardPage> {
     return false; // no collision with landed pieces
   }
 
-  bool checksides(){
-        // loop through each position of the current piece
-    for (int i = 0; i < currentPiece.position.length; i++) {
+  bool checkSides(Direction direccion){
+    for (var i = 0; i < currentPiece.position.length; i++) {
       int row = (currentPiece.position[i] / rowL).floor();
       int col = currentPiece.position[i] % rowL;
 
-      if (row  < columL  && row >= 0 && gameBoard[row][col] != null) {
-        for (int i = 0; i < currentPiece.position.length; i++) {
-        int row = (currentPiece.position[i] / rowL).floor();
-        int col = currentPiece.position[i] % rowL;
-        row >= 0 && col >= 0 ? gameBoard[row][col] = currentPiece.type : null;
-        }
-        return true;
+       if (direccion == Direction.left) {
+        if (row + 1 < columL && row >= 0 && gameBoard[row][col - 1] != null) {
+        return true; // collision with a landed piece
+      }  
+       }else if(direccion == Direction.right){
+        if (row + 1 < columL && row >= 0 && gameBoard[row][col + 1] != null) {
+        return true; // collision with a landed piece
       }
+       }
     }
-
-    return false; // no collision with landed pieces
-
+    return false;
   }
 
 
@@ -184,22 +184,14 @@ class _GameBoardPageState extends State<GameBoardPage> {
       gameover = true;
     }
   }
- 
- //move left
- void moveLeft(){
-  //make sure the move is validbefore moving there
-  if (checkCollision(Direction.left) == false) {
-    if (checksides() == false) {
-      setState(() {currentPiece.movePiece(Direction.left);});   
+  
+  //Move left o right
+  void movePieces(Direction direction){
+    if (!checkCollision(direction) && !checkSides(direction)) {
+        setState(() {currentPiece.movePiece(direction);});
     }
   }
- }
  
- //move right
- void moveRight(){
-    //make sure the move is validbefore moving there
-    !checkCollision(Direction.right) ? setState((){currentPiece.movePiece(Direction.right);}) : null;
- }
 
  //move down fast
  void moveDown(){
@@ -231,7 +223,6 @@ class _GameBoardPageState extends State<GameBoardPage> {
       });
     });
  }
-
  //rotate piece
  void rotatePieces(){
   setState(() {currentPiece.rotatePiece();});
@@ -321,7 +312,7 @@ class _GameBoardPageState extends State<GameBoardPage> {
                       int column = index % rowL;
                       //current piece
                       if (currentPiece.position.contains(index)) {
-                        return PixelPage(color: Colors.yellow[400] );
+                        return PixelPage(color: Colors.yellow[400]);
                       //landed pieces
                         }else if(gameBoard[row][column] != null){
                           final Tetromino? tetraminoType = gameBoard[row][column];
@@ -341,10 +332,10 @@ class _GameBoardPageState extends State<GameBoardPage> {
               child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
                children: [
-                //left 0
-                myBotton(context, ispause == false ? () => moveLeft() : (){}, 10, 40, 0),
-                //right 1
-                myBotton(context, ispause == false ? () => moveRight() : (){}, 40, 10, 1)
+                //move left 0 
+                myBotton(context, ispause == false ? () => movePieces(Direction.left) : (){}, 10, 40, 0),
+                //move right 1 
+                myBotton(context, ispause == false ? () => movePieces(Direction.right) : (){}, 40, 10, 1)
                 ]))],
         ),
       //GAME CONTROLS
