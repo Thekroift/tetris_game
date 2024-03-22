@@ -61,6 +61,7 @@ class _GameBoardPageState extends State<GameBoardPage> {
     (timer) {
       setState(() {
         //clear lines
+        //TODO BUG: al momento de completar una linea en la aprte superior se recorta el espacio de columnas
         clearLines();
         //check landing
         checkLanding();
@@ -202,6 +203,7 @@ class _GameBoardPageState extends State<GameBoardPage> {
     (timer) {
       setState(() {
         //clear lines
+        //TODO BUG: al momento de completar una linea en la aprte superior se recorta el espacio de columnas
         clearLines();
         //check landing
         checkLanding();
@@ -228,7 +230,8 @@ class _GameBoardPageState extends State<GameBoardPage> {
   setState(() {currentPiece.rotatePiece();});
  }
  
- //clean lines
+ //clean lines 
+ //TODO BUG: al momento de completar una linea en la aprte superior se recorta el espacio de columnas
  void clearLines(){
   //step 1: loop through each row of the game board from bottom to top
   for (int row = columL - 1; row >= 0; row--) {
@@ -327,7 +330,7 @@ class _GameBoardPageState extends State<GameBoardPage> {
                   ),
                 ),
             ),
-            //GAME CONTROLS
+            //<GAME CONTROLS
             Padding(padding: const EdgeInsets.only(bottom: 15.0, top: 3.0),
               child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -337,10 +340,10 @@ class _GameBoardPageState extends State<GameBoardPage> {
                 //move right 1 
                 myBotton(context, ispause == false ? () => movePieces(Direction.right) : (){}, 40, 10, 1)
                 ]))],
-        ),
-      //GAME CONTROLS
+        ),      
        floatingActionButton: floatingBotton(onpress: ispause == false ? () => rotatePieces() : (){}),
       floatingActionButtonLocation: FloatingActionButtonLocation.miniCenterFloat
+      //GAME CONTROLS>
    );
   }
 }
