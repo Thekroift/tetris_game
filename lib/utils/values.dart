@@ -2,8 +2,8 @@
  //grid dimensions
   import 'package:flutter/material.dart';
 
-  int rowL = 10;
-  int columL = 18;
+  int rowL = 15;//10;
+  int columL = 27;//18;
 
 enum Direction{
   left, 

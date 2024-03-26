@@ -18,13 +18,14 @@ class Piece{
  //generate the integers
  void initializePiece(){
   var tetrominoType = {
-    Tetromino.L: [-26,-16,-6,-5],
-    Tetromino.J: [-25,-15,-5,-6],
-    Tetromino.I: [-4,-5,-6,-7],
-    Tetromino.O: [-15,-16,-5,-6],
-    Tetromino.S: [-15,-14,-6,-5],
-    Tetromino.Z: [-17,-16,-6,-5],
-    Tetromino.T: [-26,-16,-6,-15],
+        Tetromino.L: [-38,-53,-68,-37],//ok
+    Tetromino.J: [-38,-53,-68,-39],//ok
+    Tetromino.I: [-37,-52,-67,-82],//ok
+    Tetromino.O: [-37,-38,-52,-53],//OK
+    Tetromino.S: [-50,-51,-36,-37],//ok
+    
+    Tetromino.Z: [-52,-53,-36,-37],
+    Tetromino.T: [-37,-52,-67,-53],//ok
   };
   position = tetrominoType[type]!;
  }
@@ -114,11 +115,12 @@ class Piece{
       rotationState = (rotationState + 1) % 4;}
     break;
     case Tetromino.Z:
-     var rotation = {
-      0:[position[0] + rowL - 2,position[1],position[2] + rowL - 1,position[3] + 1],
-      1:[position[0] - rowL + 2,position[1],position[2] - rowL + 1,position[3] - 1],
-      2:[position[0] + rowL - 2,position[1],position[2] + rowL - 1,position[3] + 1],
-      3:[position[0] - rowL + 2,position[1],position[2] - rowL + 1,position[3] - 1]};
+     var rotation = { 
+      0:[position[0] + rowL ,position[1],position[2] + rowL + 1,position[3] + 1],
+      1:[position[0] - rowL,position[1],position[2] - rowL - 1,position[3] - 1],
+      2:[position[0] + rowL ,position[1],position[2] + rowL + 1,position[3] + 1], 
+      3:[position[0] - rowL,position[1],position[2] - rowL - 1,position[3] - 1]};
+
     //get the new position
     newPosition = rotation[rotationState]!;
     //check that this new position is valid move before assigning it to the real position

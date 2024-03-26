@@ -4,6 +4,7 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:tetris_game/pages/check_collision.dart';
 import 'package:tetris_game/pages/game_over.dart';
 import 'package:tetris_game/utils/floating_botton.dart';
 import 'package:tetris_game/utils/my_botton.dart';
@@ -29,7 +30,7 @@ class GameBoardPage extends StatefulWidget {
 
 class _GameBoardPageState extends State<GameBoardPage> {
   //current tetris piece
-  Piece currentPiece = Piece(type: Tetromino.L);
+  Piece currentPiece = Piece(type: Tetromino.O);
   //current score
   int currentScore = 0;
   //game over5
@@ -60,22 +61,21 @@ class _GameBoardPageState extends State<GameBoardPage> {
       frameRate,
     (timer) {
       setState(() {
-        //clear lines
-        //TODO BUG: al momento de completar una linea en la aprte superior se recorta el espacio de columnas
-        clearLines();
+        //pause game
+        ispause == true ? timer.cancel() : null;
         //check landing
         checkLanding();
+        //clear lines
+        clearLines();
         //check if game is over
-        if (gameover == true) {
-          timer.cancel();
+        gameover == true ?  {
+          timer.cancel(),
           showGameOverDialog(context, currentScore, (){
           //reset game 
           resetGame();
           Navigator.pop(context);
-        });
-        }else if (ispause == true){
-          timer.cancel();
-        }
+        })
+        } : null;
         //move current piece dow
       currentPiece.movePiece(Direction.dow);
       });
@@ -97,10 +97,9 @@ class _GameBoardPageState extends State<GameBoardPage> {
   startGame();
   }
 
-
  void checkLanding() {
     // if going down is occupied or landed on other pieces
-    if (checkCollision(Direction.dow) || checkLanded()) {
+    if (checkCollision(Direction.dow, currentPiece.position) || checkLanded()) {
       isFast = false;
       // mark position as occupied on the game board
       for (int i = 0; i < currentPiece.position.length; i++) {
@@ -112,33 +111,8 @@ class _GameBoardPageState extends State<GameBoardPage> {
       createNewPiece();
     }
   }
-
   
-  //check for collision in a future position
-  //return true -> there is a collision 
-  //return false -> there is not collision
-  bool checkCollision(Direction direction){
-    //loop through each position of the current piece
-    for (var i = 0; i < currentPiece.position.length; ++i) {
-    //calcule the row and the column of the current position 
-     var row = (currentPiece.position[i] / rowL).floor();
-     var column = currentPiece.position[i] % rowL;
-     //adjust the row and column based on the direction     
-     if (direction == Direction.left) {
-      column -= 1;
-      }else if(direction == Direction.right){
-      column += 1;
-      }else if(direction == Direction.dow){
-      row += 1;
-      }
-      //check if the piece is out of bounds (either too low or too far to the left or right) 
-      if (row >= columL || column < 0 || column >= rowL) {
-        return true;
-        }
-    }
-    //if no collisions are detected, return false
-    return false;
-  }
+
 
   bool checkLanded() {
     // loop through each position of the current piece
@@ -179,7 +153,6 @@ class _GameBoardPageState extends State<GameBoardPage> {
     Tetromino randomType = Tetromino.values[rand.nextInt(Tetromino.values.length)];
     currentPiece = Piece(type: randomType);
     currentPiece.initializePiece();
-
     //since our game over condition is if there is a piece at the top level, you want to check if the game is over when you create a new piece instead of checking every frame, because new pieces are allowed to go through the top level but if there is already a piece in the top level when the new piece is created, the game is over.
     if (isGameOver()) {
       gameover = true;
@@ -188,7 +161,7 @@ class _GameBoardPageState extends State<GameBoardPage> {
   
   //Move left o right
   void movePieces(Direction direction){
-    if (!checkCollision(direction) && !checkSides(direction)) {
+    if (!checkCollision(direction, currentPiece.position) && !checkSides(direction)) {
         setState(() {currentPiece.movePiece(direction);});
     }
   }
@@ -202,24 +175,23 @@ class _GameBoardPageState extends State<GameBoardPage> {
       frameRate,
     (timer) {
       setState(() {
-        //clear lines
-        //TODO BUG: al momento de completar una linea en la aprte superior se recorta el espacio de columnas
-        clearLines();
+        //pause game
+        ispause == true ? timer.cancel() : null;
+        isFast == false ? timer.cancel() : null;
         //check landing
         checkLanding();
+        //clear lines
+        clearLines();
         //check if game is over
-        if (gameover == true) {
-          timer.cancel();
+        gameover == true? {
+          timer.cancel(),
           showGameOverDialog(context, currentScore, (){
           //reset game 
           resetGame();
           Navigator.pop(context);
-        });
-        }else if (ispause == true){
-          timer.cancel();
-        }else if(isFast == false){
-          timer.cancel();
-        }
+        }),
+        } : null;
+ 
         //move current piece dow
       currentPiece.movePiece(Direction.dow);
       });
@@ -231,7 +203,6 @@ class _GameBoardPageState extends State<GameBoardPage> {
  }
  
  //clean lines 
- //TODO BUG: al momento de completar una linea en la aprte superior se recorta el espacio de columnas
  void clearLines(){
   //step 1: loop through each row of the game board from bottom to top
   for (int row = columL - 1; row >= 0; row--) {
@@ -250,10 +221,9 @@ class _GameBoardPageState extends State<GameBoardPage> {
       //step 5: move all rows above the cleared row dow by one position
       for (int r = row; r > 0; r--) {
         //copy the above row to the current row
-        gameBoard[r] = List.from(gameBoard[r - 1]);
-      }
+        gameBoard[r] = List.from(gameBoard[r - 1]);}
       //step 6: set the top row to empty
-      gameBoard[0] = List.generate(row, (i) => null);
+      gameBoard[0] = List.generate(rowL, (i) => null);
       //step 7: increase the score!
       currentScore++;
     }
@@ -315,15 +285,15 @@ class _GameBoardPageState extends State<GameBoardPage> {
                       int column = index % rowL;
                       //current piece
                       if (currentPiece.position.contains(index)) {
-                        return PixelPage(color: Colors.yellow[400]);
+                        return PixelPage(color: Colors.yellow[400], child: index);
                       //landed pieces
                         }else if(gameBoard[row][column] != null){
                           final Tetromino? tetraminoType = gameBoard[row][column];
-                          return PixelPage(color: tetrominoColor[tetraminoType]);
+                          return PixelPage(color: tetrominoColor[tetraminoType],child: index);
                         }
                       //blank pixel
                         else{
-                          return PixelPage(color: const Color.fromARGB(255, 0, 0, 0));
+                          return PixelPage(color: const Color.fromARGB(255, 0, 0, 0),child: index);
                         }
                       }
                       ),
