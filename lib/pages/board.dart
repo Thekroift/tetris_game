@@ -253,7 +253,7 @@ class _GameBoardPageState extends State<GameBoardPage> {
       child: Scaffold(
         //Score
         appBar: AppBar(
-          toolbarHeight: 28,
+          toolbarHeight: 40,
           title: Text("Score: $currentScore"), 
           backgroundColor: const Color.fromARGB(135, 130, 130, 130),
           actions: [
@@ -275,7 +275,7 @@ class _GameBoardPageState extends State<GameBoardPage> {
         backgroundColor: const Color.fromARGB(135, 130, 130, 130),
         body: body2(),
         //GAME CONTROLS
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+        floatingActionButtonLocation: FloatingActionButtonLocation.miniCenterDocked,
          floatingActionButton: Padding(
           padding: const EdgeInsets.all(10), child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
