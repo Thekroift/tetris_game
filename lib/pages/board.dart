@@ -7,7 +7,6 @@ import 'package:flutter/material.dart';
 import 'package:tetris_game/pages/check_collision.dart';
 import 'package:tetris_game/pages/game_over.dart';
 import 'package:tetris_game/utils/floating_botton.dart';
-import 'package:tetris_game/utils/my_botton.dart';
 import 'package:tetris_game/utils/pieces.dart';
 import 'package:tetris_game/utils/pixel.dart';
 import 'package:tetris_game/utils/values.dart';
@@ -39,6 +38,12 @@ class _GameBoardPageState extends State<GameBoardPage> {
   bool isFast = true;
   //pause
   bool ispause = false;
+  //show arrow left 
+  bool arrowLeft = false;
+  //show arrow right
+  bool arrowRight = false;
+
+  Duration onSec = const Duration(milliseconds: 200);
 
   @override
   void initState() {
@@ -52,7 +57,7 @@ class _GameBoardPageState extends State<GameBoardPage> {
     //Duration
      Duration frameRate = const Duration(milliseconds: 800); 
     //frame refresh rate
-     gameLoop(frameRate);
+    gameLoop(frameRate);
   }
 
   //game loop
@@ -244,76 +249,92 @@ class _GameBoardPageState extends State<GameBoardPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      //Score
-      appBar: AppBar(
-        toolbarHeight: 28,
-        title: Text("Score: $currentScore"), 
+    return SafeArea(
+      child: Scaffold(
+        //Score
+        appBar: AppBar(
+          toolbarHeight: 28,
+          title: Text("Score: $currentScore"), 
+          backgroundColor: const Color.fromARGB(135, 130, 130, 130),
+          actions: [
+            IconButton(
+            splashRadius: 1,
+            onPressed: (){
+              if (ispause == false) {
+                ispause = true;
+              }else if(ispause == true){
+                ispause = false;
+                Duration frameRate = const Duration(milliseconds: 800); 
+                //frame refresh rate
+                gameLoop(frameRate);
+              }
+            },
+            icon:  Icon(ispause == false ? Icons.pause : Icons.play_arrow, color: Colors.white)),
+          ],
+          ),
         backgroundColor: const Color.fromARGB(135, 130, 130, 130),
-        actions: [
-          IconButton(
-          splashRadius: 1,
-          onPressed: (){
-            if (ispause == false) {
-              ispause = true;
-            }else if(ispause == true){
-              ispause = false;
-              Duration frameRate = const Duration(milliseconds: 800); 
-              //frame refresh rate
-              gameLoop(frameRate);
-            }
-          },
-          icon:  Icon(ispause == false ? Icons.pause : Icons.play_arrow, color: Colors.white)),
-        ],
-        ),
-      backgroundColor: const Color.fromARGB(135, 130, 130, 130),
-      body: Column(
+        body: body2(),
+        //GAME CONTROLS
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+         floatingActionButton: Padding(
+          padding: const EdgeInsets.all(10), child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            //Game grid
-                Expanded(
-                child: InkWell(
-                  onDoubleTap: () => moveDown(),
-                  child: Container(
-                    color: const Color.fromARGB(255, 62, 113, 156),
-                    child: GridView.builder(
-                      itemCount: rowL * columL,
-                      physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: rowL), 
-                    itemBuilder: (context, index) {
-                      //get row and column of each index
-                      int row = (index/ rowL).floor();
-                      int column = index % rowL;
-                      //current piece
-                      if (currentPiece.position.contains(index)) {
-                        return PixelPage(color: Colors.yellow[400], child: index);
-                      //landed pieces
-                        }else if(gameBoard[row][column] != null){
-                          final Tetromino? tetraminoType = gameBoard[row][column];
-                          return PixelPage(color: tetrominoColor[tetraminoType],child: index);
-                        }
-                      //blank pixel
-                        else{
-                          return PixelPage(color: const Color.fromARGB(255, 0, 0, 0),child: index);
-                        }
-                      }
-                      ),
-                  ),
-                ),
-            ),
-            //<GAME CONTROLS
-            Padding(padding: const EdgeInsets.only(bottom: 15.0, top: 3.0),
-              child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-               children: [
-                //move left 0 
-                myBotton(context, ispause == false ? () => movePieces(Direction.left) : (){}, 10, 40, 0),
-                //move right 1 
-                myBotton(context, ispause == false ? () => movePieces(Direction.right) : (){}, 40, 10, 1)
-                ]))],
-        ),      
-       floatingActionButton: floatingBotton(onpress: ispause == false ? () => rotatePieces() : (){}),
-      floatingActionButtonLocation: FloatingActionButtonLocation.miniCenterFloat
-      //GAME CONTROLS>
-   );
+            floatingBottonDown(onpress: () => ispause == false ? moveDown(): (){}),
+              const SizedBox(width: 100),
+              floatingBottonRotate(onpress: ispause == false ? () => rotatePieces() : (){})
+           ]))
+         ),
+    );
   }
+ 
+ //GAME CONTROLS>
+  body2(){
+  return Stack(
+    children: [
+       Container(
+        color: const Color.fromARGB(255, 62, 113, 156),
+        child: GridView.builder(
+        itemCount: rowL * columL,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: rowL), 
+        itemBuilder: (context, index) {
+        //get row and column of each index
+        int row = (index/ rowL).floor();
+        int column = index % rowL;
+        //current piece
+        if (currentPiece.position.contains(index)) {
+        return PixelPage(color: Colors.yellow[400]);
+        //landed pieces
+        }else if(gameBoard[row][column] != null){
+          final Tetromino? tetraminoType = gameBoard[row][column];
+          return PixelPage(color: tetrominoColor[tetraminoType] );
+        }
+      //blank pixel
+        else{
+          return PixelPage(color: const Color.fromARGB(255, 0, 0, 0));
+        }}
+        )),
+      
+       //GAME CONTROLS
+      Row(children: [
+        Expanded(child: InkWell(onTap: () {
+          setState(() {arrowLeft = true;});
+          Future.delayed(onSec, (){setState(() {arrowLeft = false;});});
+          movePieces(Direction.left);}, child: Container(color: Colors.transparent,
+          child: Center(
+            child: Icon(Icons.keyboard_double_arrow_left, color: arrowLeft == true ? const Color.fromRGBO(106, 161, 206, 0.47) : Colors.transparent, size: 100))))),
+          
+          Expanded(child: InkWell(onTap: () {
+          setState(() {arrowRight = true;});
+          Future.delayed(onSec, (){setState(() {arrowRight = false;});});
+          movePieces(Direction.right);},child: Container(color: Colors.transparent,
+          child:  Center(
+            child: Icon(Icons.keyboard_double_arrow_right, color: arrowRight == true ? const Color.fromRGBO(106, 161, 206, 0.47) : Colors.transparent,size: 100)))))])
+    ],
+  );
 }
+
+}
+
+ 
