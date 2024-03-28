@@ -318,17 +318,20 @@ class _GameBoardPageState extends State<GameBoardPage> {
       
        //GAME CONTROLS
       Row(children: [
-        Expanded(child: InkWell(onTap: () {
+        Expanded(child: InkWell(onTap: ispause == false ? (){
           setState(() {arrowLeft = true;});
           Future.delayed(onSec, (){setState(() {arrowLeft = false;});});
-          movePieces(Direction.left);}, child: Container(color: Colors.transparent,
+          movePieces(Direction.left);} :() {}
+          , child: Container(color: Colors.transparent,
           child: Center(
             child: Icon(Icons.keyboard_double_arrow_left, color: arrowLeft == true ? const Color.fromRGBO(106, 161, 206, 0.47) : Colors.transparent, size: 100))))),
           
-          Expanded(child: InkWell(onTap: () {
+          Expanded(child: InkWell(onTap: ispause == false ? () {
           setState(() {arrowRight = true;});
           Future.delayed(onSec, (){setState(() {arrowRight = false;});});
-          movePieces(Direction.right);},child: Container(color: Colors.transparent,
+          movePieces(Direction.right);} 
+          :() {}
+          ,child: Container(color: Colors.transparent,
           child:  Center(
             child: Icon(Icons.keyboard_double_arrow_right, color: arrowRight == true ? const Color.fromRGBO(106, 161, 206, 0.47) : Colors.transparent,size: 100)))))])
     ],
