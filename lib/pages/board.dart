@@ -4,6 +4,8 @@
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:soundpool/soundpool.dart';
 import 'package:tetris_game/pages/check_collision.dart';
 import 'package:tetris_game/pages/game_over.dart';
 import 'package:tetris_game/utils/floating_botton.dart';
@@ -44,12 +46,22 @@ class _GameBoardPageState extends State<GameBoardPage> {
   bool arrowRight = false;
 
   Duration onSec = const Duration(milliseconds: 200);
+  
+  Soundpool? _pool;
+  SoundpoolOptions _soundpoolOptions = const SoundpoolOptions();
+  int? _alarmSoundStreamId;
+  dynamic alarmSound1;
+  dynamic alarmSound2;
+
+
+  Soundpool? get _soundpool => _pool;
 
   @override
   void initState() {
     super.initState();
     //start game when app start
     startGame();
+    _initPool(_soundpoolOptions);
   }
 
   void startGame() {
@@ -102,7 +114,7 @@ class _GameBoardPageState extends State<GameBoardPage> {
   startGame();
   }
 
- void checkLanding() {
+ void checkLanding() async {
     // if going down is occupied or landed on other pieces
     if (checkCollision(Direction.dow, currentPiece.position) || checkLanded()) {
       isFast = false;
@@ -112,6 +124,8 @@ class _GameBoardPageState extends State<GameBoardPage> {
         int col = currentPiece.position[i] % rowL;
         row >= 0 && col >= 0 ? gameBoard[row][col] = currentPiece.type : null;
       }
+      //sound collition
+      await playSound(alarmSound1);
       // once landed, create the next piece
       createNewPiece();
     }
@@ -244,8 +258,7 @@ class _GameBoardPageState extends State<GameBoardPage> {
     }
   }
   return false;
- }
-
+ } 
 
   @override
   Widget build(BuildContext context) {
@@ -280,9 +293,13 @@ class _GameBoardPageState extends State<GameBoardPage> {
           padding: const EdgeInsets.all(10), child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            floatingBottonDown(onpress: () => ispause == false ? moveDown(): (){}),
+            floatingBottonDown(
+              onpress: ispause == false ? 
+              () {moveDown();} : (){}),
               const SizedBox(width: 100),
-              floatingBottonRotate(onpress: ispause == false ? () => rotatePieces() : (){})
+              floatingBottonRotate(onpress: ispause == false ? () async {
+              await playSound(alarmSound2);
+              rotatePieces();} : (){})
            ]))
          ),
     );
@@ -338,6 +355,37 @@ class _GameBoardPageState extends State<GameBoardPage> {
   );
 }
 
-}
+void _initPool(SoundpoolOptions soundpoolOptions) async {
+    _pool?.dispose();
+    setState(() {
+      _soundpoolOptions = soundpoolOptions;
+      _pool = Soundpool.fromOptions(options: _soundpoolOptions);});
+    alarmSound1 = await _loadSound1();
+    alarmSound2 = await _loadSound2();
+    }
 
- 
+  Future<int> _loadSound1() async {
+    var asset = await rootBundle.load("assets/sounds/down.mp3");
+    return await _soundpool!.load(asset);}
+
+  Future<int> _loadSound2() async {
+    var asset = await rootBundle.load("assets/sounds/rotate.mp3");
+    return await _soundpool!.load(asset);}
+
+    Future<void> playSound(sound) async {
+    _alarmSoundStreamId = await _soundpool!.play(sound);
+  }
+
+  Future<void> pauseSound() async {
+    if (_alarmSoundStreamId != null) {
+      await _soundpool!.pause(_alarmSoundStreamId!);
+    }
+  }
+
+  Future<void> stopSound() async {
+    if (_alarmSoundStreamId != null) {
+      await _soundpool!.stop(_alarmSoundStreamId!);
+    }
+  }
+
+}
