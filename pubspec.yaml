@@ -63,3 +63,4 @@ flutter:
     - assets/
     - assets/sounds/down.mp3
     - assets/sounds/rotate.mp3
+    - assets/sounds/borrar.mp3

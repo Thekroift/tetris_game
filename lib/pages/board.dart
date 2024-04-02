@@ -52,7 +52,7 @@ class _GameBoardPageState extends State<GameBoardPage> {
   int? _alarmSoundStreamId;
   dynamic alarmSound1;
   dynamic alarmSound2;
-
+  dynamic alarmSound3;
 
   Soundpool? get _soundpool => _pool;
 
@@ -102,8 +102,8 @@ class _GameBoardPageState extends State<GameBoardPage> {
 
   //reset game
   void resetGame(){
-    //clear the game board
-    gameBoard = List.generate(
+  //clear the game board
+  gameBoard = List.generate(
   columL,(n) => List.generate(rowL, (d) => null));
   //new game
   gameover = false;
@@ -114,7 +114,7 @@ class _GameBoardPageState extends State<GameBoardPage> {
   startGame();
   }
 
- void checkLanding() async {
+ void checkLanding() {
     // if going down is occupied or landed on other pieces
     if (checkCollision(Direction.dow, currentPiece.position) || checkLanded()) {
       isFast = false;
@@ -124,8 +124,6 @@ class _GameBoardPageState extends State<GameBoardPage> {
         int col = currentPiece.position[i] % rowL;
         row >= 0 && col >= 0 ? gameBoard[row][col] = currentPiece.type : null;
       }
-      //sound collition
-      await playSound(alarmSound1);
       // once landed, create the next piece
       createNewPiece();
     }
@@ -222,7 +220,7 @@ class _GameBoardPageState extends State<GameBoardPage> {
  }
  
  //clean lines 
- void clearLines(){
+ void clearLines() async{
   //step 1: loop through each row of the game board from bottom to top
   for (int row = columL - 1; row >= 0; row--) {
     //step 2: initiaize a variable to track if the row is full
@@ -237,6 +235,7 @@ class _GameBoardPageState extends State<GameBoardPage> {
     }
     //step 4: if the row is full, clear the row and shift rows down
     if (rowIsFull) {
+      await playSound(alarmSound3);
       //step 5: move all rows above the cleared row dow by one position
       for (int r = row; r > 0; r--) {
         //copy the above row to the current row
@@ -335,7 +334,9 @@ class _GameBoardPageState extends State<GameBoardPage> {
       
        //GAME CONTROLS
       Row(children: [
-        Expanded(child: InkWell(onTap: ispause == false ? (){
+        Expanded(child: InkWell(onTap: ispause == false ? () async{
+          //sound
+          await playSound(alarmSound1);
           setState(() {arrowLeft = true;});
           Future.delayed(onSec, (){setState(() {arrowLeft = false;});});
           movePieces(Direction.left);} :() {}
@@ -343,7 +344,9 @@ class _GameBoardPageState extends State<GameBoardPage> {
           child: Center(
             child: Icon(Icons.keyboard_double_arrow_left, color: arrowLeft == true ? const Color.fromRGBO(106, 161, 206, 0.47) : Colors.transparent, size: 100))))),
           
-          Expanded(child: InkWell(onTap: ispause == false ? () {
+          Expanded(child: InkWell(onTap: ispause == false ? () async {
+            //sound
+          await playSound(alarmSound1);
           setState(() {arrowRight = true;});
           Future.delayed(onSec, (){setState(() {arrowRight = false;});});
           movePieces(Direction.right);} 
@@ -362,6 +365,7 @@ void _initPool(SoundpoolOptions soundpoolOptions) async {
       _pool = Soundpool.fromOptions(options: _soundpoolOptions);});
     alarmSound1 = await _loadSound1();
     alarmSound2 = await _loadSound2();
+    alarmSound3 = await _loadSound3();
     }
 
   Future<int> _loadSound1() async {
@@ -370,6 +374,10 @@ void _initPool(SoundpoolOptions soundpoolOptions) async {
 
   Future<int> _loadSound2() async {
     var asset = await rootBundle.load("assets/sounds/rotate.mp3");
+    return await _soundpool!.load(asset);}
+
+    Future<int> _loadSound3() async {
+    var asset = await rootBundle.load("assets/sounds/borrar.mp3");
     return await _soundpool!.load(asset);}
 
     Future<void> playSound(sound) async {
